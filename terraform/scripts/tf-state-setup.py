@@ -4,13 +4,7 @@ import time
 import sys
 
 """
-echo aws dynamodb create-table \
-            --region us-east-1 \
-            --table-name tf-lock-$1-$2-$site\
-            --attribute-definitions \
-            AttributeName=LockID,AttributeType=S \
-            --key-schema AttributeName=LockID,KeyType=HASH \
-            --billing-mode PAY_PER_REQUEST
+idempotent dynamo table creation for storing terraform state
 """
 
 def create_table(aws_region=None, table_name=None):
@@ -35,19 +29,19 @@ def create_table(aws_region=None, table_name=None):
                 ],
                 BillingMode='PAY_PER_REQUEST',
                 Tags=[
-                {
-                    'Key': 'Organization',
-                    'Value': 'SRE'
-                },
-                {
-                    'Key': 'Purpose',
-                    'Value': 'tf-state'
-                },
-                {
-                    'Key': 'Environment',
-                    'Value': 'lab'
-                }
-            ]
+                    {
+                        'Key': 'Organization',
+                        'Value': 'SRE'
+                    },
+                    {
+                        'Key': 'Purpose',
+                        'Value': 'tf-state'
+                    },
+                    {
+                        'Key': 'Environment',
+                        'Value': 'lab'
+                    }
+                ]
             )
             print(response)
             response.wait_until_exists()
@@ -56,20 +50,6 @@ def create_table(aws_region=None, table_name=None):
             sys.exc_info()
             raise(e.response)
         
-
-# def check_table_creation(table=None):
-#     if table:
-#         sleep_counter = 100
-#         while table["TableDescription"]["TableStatus"] != "ACTIVE":
-#             if sleep_counter > 1:
-#                 time.sleep(10)
-#                 print(f"{sleep_counter} iteration of sleeping for 10 seconds")
-#                 sleep_counter = sleep_counter - 1
-#             else:
-#                 print(f"sleep counter has expired. Current sleep counter is: {sleep_counter}.\n Check AWS Console for Dynamo table creation")
-#             return False
-#         return True
-
 
 def check_table_exists(aws_region = None, table=None):
     if aws_region and table:
